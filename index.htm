@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>🔥 Shura OS 4.1 | Auto Daily + CV + Live Time</title>
+    <meta name="description" content="Automated daily template with CV tracking, live clock, and AI motivation">
+    <meta name="theme-color" content="#3b82f6">
+    <link rel="manifest" href="data:application/json,{&quot;name&quot;:&quot;Shura OS&quot;,&quot;short_name&quot;:&quot;ShuraOS&quot;,&quot;start_url&quot;:&quot;.&quot;,&quot;display&quot;:&quot;standalone&quot;,&quot;background_color&quot;:&quot;#0a0f1e&quot;,&quot;theme_color&quot;:&quot;#3b82f6&quot;}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        :root {
+            --bg: #0a0f1e; --card: rgba(18, 25, 45, 0.85); --border: rgba(59, 130, 246, 0.3);
+            --text: #f1f5f9; --text-secondary: #94a3b8; --primary: #3b82f6; --primary-glow: #3b82f680;
+            --success: #10b981; --warning: #f59e0b; --danger: #ef4444;
+            --gradient-1: #3b82f6; --gradient-2: #a855f7; --gradient-3: #10b981;
+        }
+        [data-theme="light"] { --bg: #f8fafc; --card: rgba(255,255,255,0.9); --border: rgba(0,0,0,0.12); --text: #0f172a; --text-secondary: #64748b; }
+        [data-theme="purple"] { --bg: #1a0b2e; --card: rgba(30,15,50,0.85); --border: rgba(168,85,247,0.4); --primary: #a855f7; --gradient-1: #a855f7; --gradient-2: #ec4899; }
+        [data-theme="fire"] { --bg: #1a0a0a; --card: rgba(40,15,15,0.85); --border: rgba(239,68,68,0.4); --primary: #ef4444; --gradient-1: #ef4444; --gradient-2: #f59e0b; }
+        [data-theme="matrix"] { --bg: #0a1a0a; --card: rgba(10,30,10,0.85); --border: rgba(34,197,94,0.4); --primary: #22c55e; --gradient-1: #22c55e; --gradient-2: #10b981; }
+
+        body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: 100px; transition: background 0.3s; }
+        
+        /* Lazy Mode */
+        body.lazy-mode .nav-tabs, body.lazy-mode .header, body.lazy-mode .section:not(#nextAction), body.lazy-mode .theme-switcher, body.lazy-mode .difficulty-bar, body.lazy-mode .lazy-btn, body.lazy-mode #topStatusBar { display: none !important; }
+        body.lazy-mode #nextAction { display: flex !important; }
+        body.lazy-mode { background: linear-gradient(135deg, #0f172a, #1e1b4b); overflow: hidden; }
+
+        /* TOP STATUS BAR - LIVE TIME + DAY + WORK STATUS */
+        #topStatusBar {
+            background: linear-gradient(90deg, var(--gradient-1), var(--gradient-2));
+            padding: 10px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 200;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-bottom: 2px solid rgba(255,255,255,0.2);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+        #liveClock { font-family: 'SF Mono', monospace; font-size: 1.2rem; letter-spacing: 1px; }
+        #liveDate { opacity: 0.9; font-size: 0.85rem; }
+        #workStatus {
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+
+        #nextAction { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; flex-direction: column; align-items: center; justify-content: center; padding: 20px; z-index: 1000; }
+        .next-action-box { background: var(--card); backdrop-filter: blur(20px); border: 2px solid var(--primary); border-radius: 32px; padding: 40px 30px; max-width: 400px; width: 100%; box-shadow: 0 20px 60px rgba(0,0,0,0.5); animation: pulse 2s ease infinite; }
+        @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.02)} }
+        .next-action-label { font-size: 0.9rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
+        .next-action-icon { font-size: 4rem; margin: 20px 0; }
+        .next-action-name { font-size: 1.8rem; font-weight: 800; margin: 16px 0; }
+        .next-action-time { font-size: 1.2rem; color: var(--warning); font-weight: 600; }
+        .next-action-xp { color: var(--success); font-weight: 700; margin: 12px 0; }
+        .next-action-btns { display: flex; gap: 12px; margin-top: 24px; justify-content: center; }
+
+        .action-btn { padding: 14px 28px; border: none; border-radius: 50px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px; }
+        .action-btn:hover { transform: translateY(-2px); filter: brightness(1.1); }
+        .action-btn.primary { background: var(--primary); color: white; }
+        .action-btn.success { background: var(--success); color: white; }
+        .action-btn.warning { background: var(--warning); color: #0f172a; }
+        .action-btn.danger { background: var(--danger); color: white; }
+        .action-btn.ghost { background: transparent; border: 2px solid var(--border); color: var(--text); }
+        .action-btn.full { width: 100%; justify-content: center; margin-top: 12px; }
+        .action-btn.large { padding: 18px 36px; font-size: 1.2rem; }
+
+        .header { background: linear-gradient(135deg, #0f172a, #1e1b4b); padding: 20px; text-align: center; border-bottom: 2px solid var(--border); }
+        .header h1 { font-size: 1.6rem; font-weight: 800; }
+        .level-badge { display: inline-flex; gap: 12px; background: rgba(255,255,255,0.12); padding: 8px 16px; border-radius: 50px; font-weight: 600; font-size: 0.85rem; margin-top: 8px; flex-wrap: wrap; justify-content: center; }
+        .xp-bar { height: 8px; background: rgba(255,255,255,0.15); border-radius: 12px; overflow: hidden; margin: 12px auto; max-width: 300px; }
+        .xp-fill { height: 100%; background: linear-gradient(90deg, #fbbf24, var(--warning)); width: 0%; transition: width 0.4s; }
+
+        .theme-switcher { position: fixed; top: 60px; right: 16px; z-index: 200; display: flex; gap: 6px; background: var(--card); backdrop-filter: blur(10px); padding: 8px; border-radius: 50px; border: 1px solid var(--border); }
+        .theme-btn { width: 32px; height: 32px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+        .theme-btn:hover { transform: scale(1.1); }
+        .theme-btn.active { border-color: white; box-shadow: 0 0 10px var(--primary); }
+        .theme-btn[data-theme="dark"] { background: #0a0f1e; }
+        .theme-btn[data-theme="light"] { background: #f8fafc; }
+        .theme-btn[data-theme="purple"] { background: #1a0b2e; }
+        .theme-btn[data-theme="fire"] { background: #1a0a0a; }
+        .theme-btn[data-theme="matrix"] { background: #0a1a0a; }
+
+        .nav-tabs { display: flex; overflow-x: auto; gap: 6px; padding: 8px 16px; background: rgba(10,15,30,0.96); position: sticky; top: 45px; z-index: 99; border-bottom: 1px solid var(--border); scrollbar-width: none; }
+        .nav-tabs::-webkit-scrollbar { display: none; }
+        .nav-tab { padding: 10px 14px; border-radius: 40px; font-weight: 600; font-size: 0.8rem; white-space: nowrap; cursor: pointer; background: rgba(255,255,255,0.06); }
+        .nav-tab.active { background: var(--primary); color: white; }
+
+        .glass-card { background: var(--card); backdrop-filter: blur(16px); border: 1px solid var(--border); border-radius: 24px; padding: 20px; margin: 12px 16px; transition: all 0.25s; }
+        .glass-card:hover { border-color: var(--primary); }
+        .glass-card h2 { font-size: 1.1rem; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+
+        .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; padding: 0 16px; margin-bottom: 16px; }
+        .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 20px; padding: 16px 12px; text-align: center; }
+        .stat-icon { font-size: 1.8rem; margin-bottom: 6px; display: block; }
+        .stat-value { font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, var(--gradient-1), var(--gradient-2)); -webkit-background-clip: text; color: transparent; }
+        .stat-label { color: var(--text-secondary); font-size: 0.75rem; margin-top: 4px; }
+
+        .task-item { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,0.06); margin: 8px 0; padding: 14px 16px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.12); cursor: pointer; }
+        .task-item:hover { background: rgba(255,255,255,0.1); }
+        .task-item.completed { background: rgba(16, 185, 129, 0.15); border-color: var(--success); }
+        .task-item.completed .task-name { text-decoration: line-through; opacity: 0.7; }
+        .task-checkbox { width: 26px; height: 26px; border: 2.5px solid var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .task-checkbox.checked { background: var(--success); border-color: var(--success); }
+        .task-checkbox.checked::after { content: "✓"; color: white; font-weight: bold; font-size: 14px; }
+        .task-time { min-width: 65px; font-weight: 600; color: var(--warning); font-size: 0.8rem; }
+        .task-name { flex: 1; font-size: 0.95rem; }
+        .task-xp { color: var(--text-secondary); font-size: 0.75rem; background: rgba(255,255,255,0.08); padding: 3px 8px; border-radius: 20px; }
+
+        .progress-bar { height: 8px; background: rgba(255,255,255,0.15); border-radius: 12px; overflow: hidden; margin: 8px 0; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--gradient-1), var(--gradient-2)); }
+
+        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin: 16px 0; }
+        .calendar-day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 12px; font-size: 0.85rem; font-weight: 600; background: rgba(255,255,255,0.05); }
+        .calendar-day.completed { background: var(--success); color: white; }
+        .calendar-day.partial { background: rgba(245, 158, 11, 0.3); }
+        .calendar-day.today { border: 2px solid var(--primary); }
+
+        .skill-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+        .skill-card { background: linear-gradient(145deg, rgba(30,41,59,0.8), rgba(15,23,42,0.8)); border-radius: 20px; padding: 16px; text-align: center; border: 1px solid var(--border); }
+        .skill-icon { font-size: 2rem; margin-bottom: 8px; }
+        .skill-level { color: var(--warning); font-weight: 700; }
+        .skill-xp-bar { height: 6px; background: rgba(255,255,255,0.15); border-radius: 10px; margin: 8px 0; overflow: hidden; }
+        .skill-xp-fill { height: 100%; background: linear-gradient(90deg, var(--gradient-3), var(--primary)); }
+
+        .shop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+        .reward-card { background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 20px; padding: 16px; text-align: center; cursor: pointer; }
+        .reward-card.locked { opacity: 0.5; }
+        .reward-card.owned { border-color: var(--success); background: rgba(16, 185, 129, 0.1); }
+
+        .achievement-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; }
+        .achievement { text-align: center; padding: 12px 8px; background: rgba(255,255,255,0.05); border-radius: 16px; border: 2px solid var(--border); }
+        .achievement.unlocked { border-color: var(--warning); background: rgba(245,158,11,0.1); }
+        .achievement.locked { opacity: 0.4; filter: grayscale(1); }
+        .achievement-icon { font-size: 1.8rem; margin-bottom: 6px; }
+        .achievement-name { font-weight: 600; font-size: 0.75rem; }
+
+        .music-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; }
+        .music-btn { background: rgba(255,255,255,0.06); border: 1px solid var(--border); border-radius: 16px; padding: 16px; text-align: center; cursor: pointer; color: var(--text); }
+        .music-btn:hover { background: rgba(255,255,255,0.12); }
+
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        .notification { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--success); color: white; padding: 14px 28px; border-radius: 60px; font-weight: 600; z-index: 3000; display: none; }
+        .notification.show { transform: translateX(-50%) translateY(0); animation: slideUp 0.4s ease forwards; }
+        @keyframes slideUp { to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+
+        .boss-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 4000; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; }
+        .boss-overlay.active { display: flex; }
+        .boss-icon { font-size: 6rem; animation: bossPulse 1s ease infinite; }
+        @keyframes bossPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+        .boss-title { font-size: 2.5rem; font-weight: 800; margin: 20px 0; background: linear-gradient(135deg, #fbbf24, #ef4444); -webkit-background-clip: text; color: transparent; }
+
+        .energy-selector { display: flex; justify-content: center; gap: 12px; margin: 16px 0; }
+        .energy-btn { font-size: 2rem; padding: 12px 20px; border: 3px solid transparent; border-radius: 20px; background: rgba(255,255,255,0.06); cursor: pointer; }
+        .energy-btn.active { border-color: var(--primary); background: rgba(59,130,246,0.2); }
+
+        .difficulty-bar { display: flex; gap: 8px; margin: 12px 16px; justify-content: center; }
+        .diff-btn { padding: 8px 16px; border-radius: 30px; border: 1px solid var(--border); background: rgba(255,255,255,0.06); color: var(--text); cursor: pointer; font-weight: 600; font-size: 0.85rem; }
+        .diff-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+
+        .ai-coach { background: linear-gradient(135deg, rgba(59,130,246,0.15), rgba(168,85,247,0.15)); border: 1px solid rgba(59,130,246,0.4); border-radius: 20px; padding: 16px; margin: 12px 16px; display: flex; align-items: flex-start; gap: 12px; }
+        .ai-avatar { font-size: 2rem; flex-shrink: 0; }
+        .ai-message { font-size: 0.95rem; line-height: 1.5; }
+
+        .motivation-banner { background: linear-gradient(135deg, rgba(245,158,11,0.15), rgba(239,68,68,0.15)); border: 1px solid rgba(245,158,11,0.4); border-radius: 20px; padding: 14px; margin: 12px 16px; text-align: center; font-weight: 600; font-style: italic; }
+
+        .cv-tracker { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; }
+        .cv-card { background: rgba(255,255,255,0.06); border-radius: 16px; padding: 14px; border: 1px solid var(--border); }
+        .cv-card h4 { margin-bottom: 8px; display: flex; justify-content: space-between; }
+        .cv-input { width: 100%; padding: 8px; background: rgba(255,255,255,0.08); border: 1px solid var(--border); border-radius: 10px; color: var(--text); margin-top: 8px; }
+
+        .lazy-btn { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: linear-gradient(135deg, var(--warning), var(--danger)); color: white; padding: 14px 28px; border-radius: 50px; font-weight: 700; cursor: pointer; border: none; box-shadow: 0 8px 25px rgba(245,158,11,0.4); z-index: 200; font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+        .lazy-btn:hover { transform: translateX(-50%) scale(1.05); }
+
+        .confetti { position: fixed; width: 10px; height: 10px; pointer-events: none; animation: fall 3s ease-out forwards; z-index: 5000; }
+        @keyframes fall { to { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
+
+        @media (max-width: 680px) { 
+            .stat-value { font-size: 1.5rem; } 
+            .next-action-name { font-size: 1.5rem; } 
+            .header h1 { font-size: 1.4rem; } 
+            #liveClock { font-size: 1rem; }
+            #workStatus { font-size: 0.7rem; padding: 3px 8px; }
+            .theme-switcher { top: 55px; right: 10px; }
+        }
+        @media print { .nav-tabs, .lazy-btn, .notification, .theme-switcher, .action-btn, #topStatusBar { display: none !important; } .section { display: block !important; } body { background: white; color: black; } }
+    </style>
+</head>
+<body>
+    <!-- TOP STATUS BAR: LIVE TIME + DAY + WORK STATUS -->
+    <div id="topStatusBar">
+        <div id="liveClock">00:00:00</div>
+        <div id="liveDate">Loading...</div>
+        <div id="workStatus">💼 Work: 6:30-15:00</div>
+    </div>
+
+    <div class="notification" id="notification">✨</div>
+    <div class="boss-overlay" id="bossOverlay">
+        <div class="boss-icon">🏆</div>
+        <div class="boss-title">BOSS DEFEATED!</div>
+        <div style="font-size:1.2rem;color:var(--text-secondary);margin:20px 0">+<span id="bossXP">100</span> XP | +1 Streak | 🔥 <span id="bossBadge">Day Complete</span></div>
+        <button class="action-btn large primary" onclick="App.closeBoss()">🎉 AWESOME!</button>
+    </div>
+
+    <div class="theme-switcher">
+        <button class="theme-btn active" data-theme="dark" onclick="App.setTheme('dark')"></button>
+        <button class="theme-btn" data-theme="light" onclick="App.setTheme('light')"></button>
+        <button class="theme-btn" data-theme="purple" onclick="App.setTheme('purple')"></button>
+        <button class="theme-btn" data-theme="fire" onclick="App.setTheme('fire')"></button>
+        <button class="theme-btn" data-theme="matrix" onclick="App.setTheme('matrix')"></button>
+    </div>
+
+    <div class="header">
+        <h1>🔥 SHURA OS 4.1</h1>
+        <div class="level-badge">
+            <span>⭐ <span id="rpgTitle">Student</span></span>
+            <span>🏆 <span id="userXP">0</span> XP</span>
+            <span>🔥 <span id="userStreak">0</span>d</span>
+            <span id="templateBadge" style="background:var(--primary);padding:2px 8px;border-radius:20px;font-size:0.75rem">DEV</span>
+        </div>
+        <div class="xp-bar"><div class="xp-fill" id="xpBarFill"></div></div>
+    </div>
+
+    <div class="difficulty-bar">
+        <button class="diff-btn" onclick="App.setDifficulty('easy')">😴 Easy</button>
+        <button class="diff-btn active" onclick="App.setDifficulty('normal')">⚡ Normal</button>
+        <button class="diff-btn" onclick="App.setDifficulty('beast')"> Beast</button>
+    </div>
+
+    <div class="nav-tabs">
+        <div class="nav-tab active" onclick="App.showSection('dashboard')">📊 DASH</div>
+        <div class="nav-tab" onclick="App.showSection('daily')">📅 TASKS</div>
+        <div class="nav-tab" onclick="App.showSection('cv')">💼 CV/JOBS</div>
+        <div class="nav-tab" onclick="App.showSection('skills')">🌳 SKILLS</div>
+        <div class="nav-tab" onclick="App.showSection('shop')">🏪 SHOP</div>
+        <div class="nav-tab" onclick="App.showSection('music')">🎧 MUSIC</div>
+        <div class="nav-tab" onclick="App.showSection('calendar')">📅 CALENDAR</div>
+        <div class="nav-tab" onclick="App.showSection('achievements')">🏆 BADGES</div>
+        <div class="nav-tab" onclick="App.showSection('analytics')"> STATS</div>
+    </div>
+
+    <button class="lazy-btn" onclick="App.toggleLazyMode()">⚡ <span id="lazyText">LAZY MODE</span></button>
+
+    <div id="nextAction">
+        <div class="next-action-box">
+            <div class="next-action-label">🚀 NEXT ACTION</div>
+            <div class="next-action-icon" id="nextActionIcon"></div>
+            <div class="next-action-name" id="nextActionName">Loading...</div>
+            <div class="next-action-time" id="nextActionTime">30 min</div>
+            <div class="next-action-xp" id="nextActionXP">+30 XP</div>
+            <div class="progress-bar" style="margin:20px 0"><div class="progress-fill" id="nextActionProgress" style="width:0%"></div></div>
+            <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:16px"><span id="nextActionCount">0</span>/<span id="nextActionTotal">0</span> done</div>
+            <div class="next-action-btns">
+                <button class="action-btn large primary" onclick="App.completeNextAction()">✅ DONE</button>
+                <button class="action-btn large ghost" onclick="App.exitLazyMode()">🚪 EXIT</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <section class="section active" id="dashboard">
+        <div class="motivation-banner" id="dailyMotivation">✨ "Small daily wins → extraordinary life"</div>
+        <div class="ai-coach">
+            <span class="ai-avatar">🤖</span>
+            <span class="ai-message" id="aiMessage">Loading your AI coach...</span>
+        </div>
+        <div class="dashboard-grid">
+            <div class="stat-card"><span class="stat-icon">📊</span><div class="stat-value" id="todayProgress">0%</div><div class="stat-label">Today</div><div class="progress-bar"><div class="progress-fill" id="dailyBar"></div></div></div>
+            <div class="stat-card"><span class="stat-icon">🔥</span><div class="stat-value" id="streakDisplay">0</div><div class="stat-label">Streak</div></div>
+            <div class="stat-card"><span class="stat-icon"></span><div class="stat-value" id="totalXP">0</div><div class="stat-label">Total XP</div></div>
+            <div class="stat-card"><span class="stat-icon">😊</span><div class="stat-value" id="energyDisplay">-</div><div class="stat-label">Energy</div></div>
+        </div>
+        <div class="glass-card">
+            <h2>🧠 Energy Check</h2>
+            <div class="energy-selector">
+                <button class="energy-btn" onclick="App.setEnergy('high')" data-energy="high">😀</button>
+                <button class="energy-btn" onclick="App.setEnergy('medium')" data-energy="medium">😐</button>
+                <button class="energy-btn" onclick="App.setEnergy('low')" data-energy="low"></button>
+            </div>
+            <p id="energyTip" style="color:var(--text-secondary);font-size:0.85rem;text-align:center"></p>
+        </div>
+        <div class="glass-card">
+            <h2>🎯 Today's Top 3</h2>
+            <div id="top3Tasks"></div>
+            <p style="color:var(--text-secondary);font-size:0.8rem;margin-top:8px;text-align:center">Est: <span id="estTime">75</span> min</p>
+        </div>
+        <div class="glass-card">
+            <h2>🌳 Quick Skills</h2>
+            <div id="skillPreview" class="skill-grid"></div>
+        </div>
+    </section>
+
+    <!-- DAILY TASKS -->
+    <section class="section" id="daily">
+        <div id="morningTasks" class="glass-card"><h2>🌅 Morning</h2></div>
+        <div id="workTasks" class="glass-card"><h2>💼 Work</h2></div>
+        <div id="languageTasks" class="glass-card"><h2>🗣️ Language</h2></div>
+        <div id="studyTasks" class="glass-card"><h2>📚 Study</h2></div>
+        <div id="skillTasks" class="glass-card"><h2>🚀 Skills</h2></div>
+        <div id="eveningTasks" class="glass-card"><h2>🌙 Evening</h2></div>
+    </section>
+
+    <!-- CV TRACKER -->
+    <section class="section" id="cv">
+        <div class="glass-card">
+            <h2>💼 CV & Job Tracker</h2>
+            <p style="color:var(--text-secondary);font-size:0.9rem;margin-bottom:12px">Track applications, portfolio updates, and interview prep. Earn XP for career growth!</p>
+            <div class="cv-tracker">
+                <div class="cv-card">
+                    <h4> CV/Resume Updates <span style="color:var(--warning)" id="cvUpdates">0</span></h4>
+                    <input class="cv-input" placeholder="e.g., Added Python projects" onchange="App.addCVItem('updates', this.value)">
+                    <div id="cvUpdatesList" style="margin-top:8px;font-size:0.85rem;color:var(--text-secondary)"></div>
+                </div>
+                <div class="cv-card">
+                    <h4>📬 Applications Sent <span style="color:var(--success)" id="cvApps">0</span></h4>
+                    <input class="cv-input" placeholder="e.g., Web Dev at TechCo" onchange="App.addCVItem('apps', this.value)">
+                    <div id="cvAppsList" style="margin-top:8px;font-size:0.85rem;color:var(--text-secondary)"></div>
+                </div>
+                <div class="cv-card">
+                    <h4> Interviews/Prep <span style="color:var(--primary)" id="cvInterviews">0</span></h4>
+                    <input class="cv-input" placeholder="e.g., Mock interview prep" onchange="App.addCVItem('interviews', this.value)">
+                    <div id="cvInterviewsList" style="margin-top:8px;font-size:0.85rem;color:var(--text-secondary)"></div>
+                </div>
+                <div class="cv-card">
+                    <h4>🌐 Portfolio/Links <span style="color:var(--warning)" id="cvPortfolio">0</span></h4>
+                    <input class="cv-input" placeholder="e.g., GitHub profile updated" onchange="App.addCVItem('portfolio', this.value)">
+                    <div id="cvPortfolioList" style="margin-top:8px;font-size:0.85rem;color:var(--text-secondary)"></div>
+                </div>
+            </div>
+            <button class="action-btn full success" onclick="App.addCVXP()"> Add CV Progress XP (+25)</button>
+        </div>
+    </section>
+
+    <!-- SKILLS -->
+    <section class="section" id="skills">
+        <div class="glass-card"><h2>🌳 Skill Tree</h2><div id="skillTreeFull" class="skill-grid"></div></div>
+        <div class="glass-card">
+            <h3>🎮 RPG Progress</h3>
+            <div style="text-align:center;padding:20px">
+                <div style="font-size:3rem;margin:10px 0" id="rpgIcon"></div>
+                <div style="font-size:1.5rem;font-weight:700" id="rpgTitleFull">Student</div>
+                <div style="color:var(--text-secondary);margin:8px 0">Level <span id="rpgLevel">1</span></div>
+                <div class="progress-bar"><div class="progress-fill" id="rpgBarFill" style="width:0%"></div></div>
+                <div style="font-size:0.85rem;color:var(--text-secondary);margin-top:8px">Next: <span id="nextTitle">Warrior</span> at <span id="nextLevelXP">500</span> XP</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SHOP -->
+    <section class="section" id="shop">
+        <div class="glass-card">
+            <h2>🏪 Reward Shop</h2>
+            <div style="margin:12px 0;padding:12px;background:rgba(245,158,11,0.1);border-radius:16px">💰 Balance: <strong style="color:var(--warning);font-size:1.2rem"><span id="shopXP">0</span> XP</strong></div>
+            <div id="shopGrid" class="shop-grid"></div>
+        </div>
+    </section>
+
+    <!-- MUSIC -->
+    <section class="section" id="music">
+        <div class="glass-card">
+            <h2>🎧 Focus Music</h2>
+            <div class="music-grid">
+                <button class="music-btn" onclick="App.playMusic('rain')">🌧️ Rain</button>
+                <button class="music-btn" onclick="App.playMusic('lofi')">🎵 Lofi</button>
+                <button class="music-btn" onclick="App.playMusic('deep')">🧠 Deep</button>
+                <button class="music-btn" onclick="App.playMusic('white')"> White Noise</button>
+                <button class="music-btn" onclick="App.playMusic('nature')">🌲 Nature</button>
+                <button class="music-btn" onclick="App.playMusic('jazz')">🎷 Jazz</button>
+            </div>
+        </div>
+    </section>
+
+    <!-- CALENDAR -->
+    <section class="section" id="calendar">
+        <div class="glass-card"><h2>📅 Monthly Progress</h2><div id="calendarView"></div></div>
+    </section>
+
+    <!-- ACHIEVEMENTS -->
+    <section class="section" id="achievements">
+        <div class="glass-card"><h2>🏆 Badges</h2><div id="achievementsGrid" class="achievement-grid"></div></div>
+    </section>
+
+    <!-- ANALYTICS -->
+    <section class="section" id="analytics">
+        <div class="glass-card"><h2>📈 Weekly</h2><div class="chart-container"><canvas id="weeklyChart"></canvas></div></div>
+        <div class="glass-card"><h2>📊 Skills</h2><div class="chart-container"><canvas id="skillChart"></canvas></div></div>
+        <div class="glass-card">
+            <h2>💾 Data</h2>
+            <button class="action-btn" onclick="App.exportCSV()">📥 CSV</button>
+            <button class="action-btn" onclick="App.backupJSON()">💾 Backup</button>
+            <button class="action-btn danger" onclick="App.resetAll()">⚠️ Reset</button>
+        </div>
+    </section>
+
+    <script>
+    const App = {
+        data: {
+            user: { xp: 0, level: 1, streak: 0, lastActive: null, lastStreakUpdate: null, energy: null, lazyMode: false, difficulty: 'normal', purchasedRewards: [], lastDate: null, template: 'dev' },
+            tasks: {},
+            skills: { python: { xp: 0, level: 1, icon: '🐍', name: 'Python' }, english: { xp: 0, level: 1, icon: '🗣️', name: 'English' }, design: { xp: 0, level: 1, icon: '', name: 'Design' }, webdev: { xp: 0, level: 1, icon: '🌐', name: 'Web Dev' } },
+            pomodoro: { today: 0, total: 0 },
+            energyHistory: [],
+            achievements: {},
+            cv: { updates: [], apps: [], interviews: [], portfolio: [], xp: 0 }
+        },
+        config: {
+            templates: {
+                dev: { name: 'Developer', tasks: ['python','webdev','study1','read','english_speak','review'] },
+                job: { name: 'Job Hunter', tasks: ['cv_update','apply_jobs','portfolio','interview_prep','english_speak','study1'] },
+                student: { name: 'Student', tasks: ['study1','study2','read','python','english_speak','review'] },
+                lazy: { name: 'Lazy', tasks: ['wake','water','python','english_speak','sleep'] }
+            },
+            tasks: {
+                morning: [
+                    { id: 'wake', time: '5:30', name: 'Wake Up', xp: 10, skill: null, priority: 'high' },
+                    { id: 'water', time: '5:35', name: 'Hydrate', xp: 5, skill: null, priority: 'low' },
+                    { id: 'motivation', time: '5:45', name: 'Motivation', xp: 15, skill: null, priority: 'medium' },
+                    { id: 'read', time: '6:00', name: 'Read 5 Pages', xp: 20, skill: 'english', priority: 'high' },
+                    { id: 'ready', time: '6:15', name: 'Get Ready', xp: 10, skill: null, priority: 'medium' }
+                ],
+                work: [{ id: 'job', time: '6:30-15:00', name: 'Job/Work', xp: 50, skill: null, priority: 'high' }],
+                language: [
+                    { id: 'english_speak', time: '30min', name: 'English Speaking', xp: 30, skill: 'english', priority: 'high' },
+                    { id: 'urdu_read', time: '30min', name: 'Urdu Reading', xp: 30, skill: null, priority: 'medium' }
+                ],
+                study: [
+                    { id: 'rest', time: '15:00', name: 'Rest + Food', xp: 10, skill: null, priority: 'medium' },
+                    { id: 'study1', time: '15:30', name: 'Study Session 1', xp: 30, skill: null, priority: 'high' },
+                    { id: 'study2', time: '16:30', name: 'Study Session 2', xp: 30, skill: null, priority: 'medium' }
+                ],
+                skills: [
+                    { id: 'python', time: '17:30', name: 'Python Practice', xp: 25, skill: 'python', priority: 'high' },
+                    { id: 'design', time: '18:00', name: 'Design Practice', xp: 25, skill: 'design', priority: 'medium' },
+                    { id: 'canva', time: '18:30', name: 'Canva Practice', xp: 25, skill: 'design', priority: 'low' },
+                    { id: 'webdev', time: '19:00', name: 'Web Development', xp: 25, skill: 'webdev', priority: 'high' }
+                ],
+                evening: [
+                    { id: 'review', time: '19:40', name: 'Review Notes', xp: 20, skill: null, priority: 'high' },
+                    { id: 'selftalk', time: '20:30', name: 'Self Talk', xp: 15, skill: null, priority: 'medium' },
+                    { id: 'relax', time: '21:00', name: 'Relax', xp: 10, skill: null, priority: 'low' },
+                    { id: 'prepare', time: '21:30', name: 'Plan Tomorrow', xp: 15, skill: null, priority: 'medium' },
+                    { id: 'sleep', time: '22:00', name: 'Sleep', xp: 20, skill: null, priority: 'high' }
+                ]
+            },
+            motivationalQuotes: [
+                "Discipline is choosing between what you want now and what you want most.",
+                "Small daily improvements lead to stunning results.",
+                "Your future self is watching you right now through memories.",
+                "Consistency beats intensity. Every. Single. Time.",
+                "You don't have to be great to start, but you have to start to be great.",
+                "Motivation gets you started. Habit keeps you going.",
+                "Success is the sum of small efforts repeated day in and day out.",
+                "The only bad workout is the one that didn't happen.",
+                "Fall seven times, stand up eight.",
+                "Your only limit is your mind.",
+                "Do it now. Sometimes 'later' becomes 'never'.",
+                "Hard choices, easy life. Easy choices, hard life.",
+                "Progress, not perfection.",
+                "Every expert was once a beginner.",
+                "The secret of getting ahead is getting started."
+            ],
+            rpgTitles: [
+                { level: 1, title: 'Student', icon: '🎓' },
+                { level: 5, title: 'Warrior', icon: '⚔️' },
+                { level: 10, title: 'Builder', icon: '🔨' },
+                { level: 20, title: 'Master', icon: '🧙' },
+                { level: 50, title: 'Legend', icon: '👑' }
+            ],
+            rewards: [
+                { id: 'movie', name: 'Watch Movie', cost: 100, icon: '🎬' },
+                { id: 'gaming', name: 'Gaming Session', cost: 200, icon: '🎮' },
+                { id: 'food', name: 'Treat Yourself', cost: 300, icon: '🍕' },
+                { id: 'shopping', name: 'Buy Something', cost: 500, icon: '️' },
+                { id: 'dayoff', name: 'Lazy Day Pass', cost: 1000, icon: '😴' }
+            ],
+            achievements: [
+                { id: 'early_bird', name: 'Early Bird', icon: '🌅', desc: 'Wake up 7 days' },
+                { id: 'focus_king', name: 'Focus King', icon: '🧠', desc: '50 Pomodoros' },
+                { id: 'book_worm', name: 'Book Worm', icon: '', desc: 'Read 100 pages' },
+                { id: 'iron_mind', name: 'Iron Mind', icon: '💪', desc: '30-day streak' },
+                { id: 'lang_master', name: 'Language Master', icon: '🗣️', desc: '100 speaking sessions' },
+                { id: 'prod_beast', name: 'Prod. Beast', icon: '🔥', desc: '1000 XP total' },
+                { id: 'cv_builder', name: 'CV Builder', icon: '', desc: 'Log 10 CV actions' },
+                { id: 'job_hunter', name: 'Job Hunter', icon: '💼', desc: 'Send 5 applications' },
+                { id: 'first_blood', name: 'First Blood', icon: '👣', desc: 'Complete first task' },
+                { id: 'streak_3', name: 'Hat Trick', icon: '🎯', desc: '3-day streak' },
+                { id: 'streak_7', name: 'Week Warrior', icon: '⚡', desc: '7-day streak' },
+                { id: 'all_tasks', name: 'Perfectionist', icon: '💎', desc: 'All tasks in a day' }
+            ],
+            musicPlaylists: {
+                rain: 'https://www.youtube.com/watch?v=4xDzrJKXOOY',
+                lofi: 'https://www.youtube.com/watch?v=jfKfPfyJRdk',
+                deep: 'https://www.youtube.com/watch?v=77ZozI0rw7w',
+                white: 'https://www.youtube.com/watch?v=xNN7iTA57jM',
+                nature: 'https://www.youtube.com/watch?v=WhYfGhFzJQo',
+                jazz: 'https://www.youtube.com/watch?v=Dx5qFachd3A'
+            }
+        },
+        state: { renderDirty: false, charts: { weekly: null, skill: null }, lazyMode: false, bossShown: false },
+
+        get todayKey() { return new Date().toDateString(); },
+        get allTasks() { return Object.values(this.config.tasks).flat(); },
+        get allTaskIds() { return this.allTasks.map(t => t.id); },
+        get activeTemplate() { return this.config.templates[this.data.user.template] || this.config.templates.dev; },
+
+        // ========== LIVE TIME + DAY + WORK STATUS ==========
+        initStatusBar() {
+            const update = () => {
+                const now = new Date();
+                document.getElementById('liveClock').textContent = now.toLocaleTimeString('en-US', { hour12: false });
+                document.getElementById('liveDate').textContent = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                
+                const hour = now.getHours();
+                const min = now.getMinutes();
+                const currentMin = hour * 60 + min;
+                let status = '';
+                if (currentMin >= 330 && currentMin < 390) status = '🌅 Morning Routine';
+                else if (currentMin >= 390 && currentMin < 900) status = '💼 Work Block';
+                else if (currentMin >= 900 && currentMin < 1050) status = '📚 Study / Language';
+                else if (currentMin >= 1050 && currentMin < 1180) status = '🚀 Skill Practice';
+                else if (currentMin >= 1180 && currentMin < 1320) status = '🌙 Evening Reset';
+                else status = '😴 Rest / Sleep';
+                document.getElementById('workStatus').textContent = status;
+            };
+            update();
+            setInterval(update, 1000);
+        },
+
+        // ========== AUTO DAILY RESET & MOTIVATION ==========
+        checkNewDay() {
+            const today = this.todayKey;
+            if (this.data.user.lastDate !== today) {
+                const yesterday = new Date(Date.now() - 86400000).toDateString();
+                const yesterdayData = this.data.tasks[yesterday] || {};
+                const wasFull = this.allTaskIds.every(id => yesterdayData[id]?.completed);
+                
+                if (wasFull && this.data.user.lastActive === yesterday) this.data.user.streak++;
+                else if (this.data.user.lastActive === yesterday && !wasFull) this.data.user.streak = 0;
+
+                this.data.user.lastActive = today;
+                this.data.user.lastDate = today;
+                this.data.user.lastStreakUpdate = today;
+                this.state.bossShown = false;
+                this.updateMotivation();
+                this.notify('🌅 New day! Motivation & tasks refreshed.');
+                this.scheduleRender();
+            }
+        },
+
+        updateMotivation() {
+            const dayIndex = Math.floor(Date.now() / 86400000);
+            const quote = this.config.motivationalQuotes[dayIndex % this.config.motivationalQuotes.length];
+            document.getElementById('dailyMotivation').textContent = `✨ "${quote}"`;
+        },
+
+        // ========== STORAGE ==========
+        save() { try { localStorage.setItem('shura_os_v4', JSON.stringify(this.data)); } catch(e){} },
+        load() {
+            try {
+                const saved = localStorage.getItem('shura_os_v4');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    this.data = { ...this.data, ...parsed };
+                    if (!this.data.cv) this.data.cv = { updates: [], apps: [], interviews: [], portfolio: [], xp: 0 };
+                    Object.keys(this.config.tasks).forEach(() => { if (!this.data.tasks[this.todayKey]) this.data.tasks[this.todayKey] = {}; });
+                }
+            } catch(e) {}
+        },
+
+        onDataChange() { this.save(); this.scheduleRender(); },
+
+        // ========== RENDERING ==========
+        scheduleRender() { if (this.state.renderDirty) return; this.state.renderDirty = true; requestAnimationFrame(() => { this.render(); this.state.renderDirty = false; }); },
+
+        render() {
+            this.renderDashboard(); this.renderTasks(); this.renderSkills(); this.renderShop(); this.renderAchievements(); this.renderCalendar(); this.renderCV();
+            this.checkAchievements(); this.checkBossBattle();
+        },
+
+        renderDashboard() {
+            const today = this.data.tasks[this.todayKey] || {};
+            const completed = this.allTaskIds.filter(id => today[id]?.completed).length;
+            const pct = Math.round(completed / this.allTaskIds.length * 100);
+
+            this.setText('todayProgress', pct + '%'); this.setText('streakDisplay', this.data.user.streak);
+            this.setText('totalXP', this.data.user.xp); this.setText('shopXP', this.data.user.xp);
+            this.setText('energyDisplay', this.data.user.energy ? this.getEnergyEmoji(this.data.user.energy) : '-');
+            this.setWidth('dailyBar', pct);
+            this.setWidth('xpBarFill', (this.data.user.xp / (this.data.user.level * 100)) * 100);
+
+            const rpg = this.getRPGInfo();
+            this.setText('rpgTitle', rpg.title); this.setText('rpgTitleFull', rpg.title); this.setText('rpgLevel', rpg.level); this.setText('rpgIcon', rpg.icon);
+            this.setText('nextTitle', this.getNextRPGTitle()?.title || 'Legend'); this.setText('nextLevelXP', this.getNextRPGTitle()?.level * 100 || '∞');
+            this.setWidth('rpgBarFill', ((this.data.user.xp % 100) / 100) * 100);
+
+            this.setText('templateBadge', this.activeTemplate.name.toUpperCase());
+            this.renderTop3(); this.renderAI();
+
+            const tipEl = document.getElementById('energyTip');
+            if (tipEl) {
+                const tips = { high: "🚀 High energy! Tackle hardest task first.", medium: "✅ Steady progress. Stick to plan.", low: "💙 Low energy? Try easy/lazy mode." };
+                tipEl.textContent = this.data.user.energy ? tips[this.data.user.energy] : "How's your energy today?";
+            }
+
+            document.getElementById('skillPreview').innerHTML = Object.entries(this.data.skills).map(([k,s]) => `
+                <div class="skill-card"><div class="skill-icon">${s.icon}</div><div class="skill-name">${s.name}</div><div class="skill-level">Lv ${s.level}</div>
+                <div class="skill-xp-bar"><div class="skill-xp-fill" style="width:${s.xp % 100}%"></div></div></div>`).join('');
+        },
+
+        renderTop3() {
+            const today = this.data.tasks[this.todayKey] || {};
+            const diff = this.data.user.difficulty;
+            let tasks = this.allTasks.filter(t => diff === 'easy' ? t.priority === 'high' : diff === 'beast' ? true : t.priority !== 'low');
+            tasks.sort((a,b) => ({high:3,medium:2,low:1}[b.priority]) - ({high:3,medium:2,low:1}[a.priority]));
+            const top3 = tasks.slice(0,3);
+
+            document.getElementById('top3Tasks').innerHTML = top3.map((t,i) => `
+                <div class="task-item ${today[t.id]?.completed?'completed':''}" onclick="App.toggleTask('${t.id}')">
+                    <div class="task-checkbox ${today[t.id]?.completed?'checked':''}"></div>
+                    <div style="flex:1"><div style="font-weight:600">${i+1}. ${t.name}</div><div style="font-size:0.85rem;color:var(--text-secondary)">${t.time} • +${t.xp} XP</div></div>
+                </div>`).join('');
+            this.setText('estTime', top3.reduce((s,t)=>s+25,0));
+        },
+
+        renderTasks() {
+            const today = this.data.tasks[this.todayKey] || {};
+            const isLazy = this.data.user.lazyMode;
+            const diff = this.data.user.difficulty;
+
+            Object.entries(this.config.tasks).forEach(([cat, tasks]) => {
+                const container = document.getElementById(cat + 'Tasks');
+                if (!container) return;
+                let filtered = tasks;
+                if (isLazy) filtered = tasks.filter(t => t.priority === 'high');
+                else if (diff === 'easy') filtered = tasks.filter(t => t.priority !== 'low');
+                if (filtered.length === 0 && isLazy) return;
+
+                container.innerHTML = `<h2>${cat.toUpperCase()}${isLazy ? ' (Essential)' : ''}</h2>` + 
+                    filtered.map(t => {
+                        const td = today[t.id] || {};
+                        return `<div class="task-item ${td.completed?'completed':''}" onclick="App.toggleTask('${t.id}')">
+                            <div class="task-checkbox ${td.completed?'checked':''}"></div>
+                            <div class="task-time">${t.time}</div>
+                            <div class="task-name">${t.name}${t.skill ? ` <span style="color:var(--primary)">[${this.data.skills[t.skill].icon}]</span>` : ''}</div>
+                            <div class="task-xp">+${t.xp} XP</div></div>`;
+                    }).join('');
+            });
+        },
+
+        renderSkills() {
+            document.getElementById('skillTreeFull').innerHTML = Object.entries(this.data.skills).map(([k,s]) => `
+                <div class="skill-card"><div class="skill-icon">${s.icon}</div><div class="skill-name">${s.name}</div><div class="skill-level">Level ${s.level}</div>
+                <div class="skill-xp-bar"><div class="skill-xp-fill" style="width:${s.xp % 100}%"></div></div>
+                <div style="font-size:0.75rem;color:var(--text-secondary)">${s.xp % 100}/100 XP</div></div>`).join('');
+        },
+
+        renderShop() {
+            document.getElementById('shopGrid').innerHTML = this.config.rewards.map(r => {
+                const owned = this.data.user.purchasedRewards.includes(r.id);
+                const canAfford = this.data.user.xp >= r.cost;
+                return `<div class="reward-card ${owned?'owned':''} ${!owned&&!canAfford?'locked':''}" ${!owned&&canAfford?`onclick="App.purchaseReward('${r.id}')"`:''}>
+                    <div style="font-size:2rem;margin-bottom:8px">${r.icon}</div><div style="font-weight:600;font-size:0.9rem">${r.name}</div>
+                    <div style="color:var(--warning);font-weight:700;font-size:0.85rem">${r.cost} XP</div>
+                    ${owned?'<div style="margin-top:6px;font-size:0.8rem;color:var(--success)">✓ Owned</div>':''}
+                    ${!owned&&!canAfford?`<div style="margin-top:6px;font-size:0.75rem;color:var(--danger)">Need ${r.cost-this.data.user.xp} more</div>`:''}</div>`;
+            }).join('');
+        },
+
+        renderAchievements() {
+            document.getElementById('achievementsGrid').innerHTML = this.config.achievements.map(a => `
+                <div class="achievement ${this.data.achievements[a.id]?'unlocked':'locked'}">
+                    <div class="achievement-icon">${a.icon}</div><div class="achievement-name">${a.name}</div><div style="font-size:0.65rem;color:var(--text-secondary);margin-top:4px">${a.desc}</div></div>`).join('');
+        },
+
+        renderCalendar() {
+            const container = document.getElementById('calendarView');
+            if (!container) return;
+            const now = new Date(); const year = now.getFullYear(); const month = now.getMonth();
+            const firstDay = new Date(year, month, 1).getDay(); const daysInMonth = new Date(year, month + 1, 0).getDate(); const today = now.getDate();
+            let html = '<div class="calendar-grid">';
+            ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].forEach(d => html += `<div style="text-align:center;font-size:0.75rem;color:var(--text-secondary);font-weight:600;padding:4px">${d}</div>`);
+            for (let i = 0; i < firstDay; i++) html += '<div class="calendar-day"></div>';
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dateKey = new Date(year, month, d).toDateString();
+                const dayData = this.data.tasks[dateKey] || {};
+                const completed = this.allTaskIds.filter(id => dayData[id]?.completed).length;
+                const isComplete = completed === this.allTaskIds.length; const isPartial = completed > 0 && !isComplete;
+                html += `<div class="calendar-day ${isComplete?'completed':isPartial?'partial':''} ${d===today?'today':''}">${d}</div>`;
+            }
+            container.innerHTML = html + '</div>';
+        },
+
+        renderCV() {
+            ['updates','apps','interviews','portfolio'].forEach(type => {
+                const listEl = document.getElementById(`cv${type.charAt(0).toUpperCase()+type.slice(1)}List`);
+                const countEl = document.getElementById(`cv${type.charAt(0).toUpperCase()+type.slice(1)}`);
+                if (listEl) listEl.innerHTML = this.data.cv[type].map(i => `<div>• ${i}</div>`).join('');
+                if (countEl) countEl.textContent = this.data.cv[type].length;
+            });
+        },
+
+        renderAI() {
+            const msg = document.getElementById('aiMessage'); if (!msg) return;
+            const today = this.data.tasks[this.todayKey] || {};
+            const pct = this.allTaskIds.filter(id => today[id]?.completed).length / this.allTaskIds.length;
+            let m = '';
+            if (this.data.user.energy === 'low') m = "😴 Low energy. Try easy/lazy mode. 1 task > 0.";
+            else if (pct < 0.2) m = " Start with ONE task. Momentum follows action.";
+            else if (pct < 0.5) m = "📈 Good start! Keep the streak alive.";
+            else if (pct < 0.8) m = "🔥 Over halfway! Finish strong.";
+            else if (pct < 1) m = "⚡ Almost done! Boss battle awaits!";
+            else m = "🏆 ALL DONE! You're unstoppable. Streak: " + this.data.user.streak;
+            msg.textContent = m;
+        },
+
+        // ========== TASK LOGIC ==========
+        toggleTask(taskId) {
+            const today = this.todayKey;
+            if (!this.data.tasks[today]) this.data.tasks[today] = {};
+            const taskDef = this.allTasks.find(t => t.id === taskId); if (!taskDef) return;
+            const td = this.data.tasks[today][taskId] || {};
+            td.completed = !td.completed; this.data.tasks[today][taskId] = td;
+
+            if (td.completed && !td.xpEarned) {
+                this.addXP(taskDef.xp);
+                if (taskDef.skill && this.data.skills[taskDef.skill]) this.addSkillXP(taskDef.skill, Math.round(taskDef.xp * 0.5));
+                td.xpEarned = true; this.showConfetti(); this.notify(`✅ +${taskDef.xp} XP!`);
+            }
+            this.onDataChange(); this.checkStreaks();
+        },
+
+        addXP(amount) {
+            this.data.user.xp += amount;
+            let needed = this.data.user.level * 100;
+            while (this.data.user.xp >= needed) { this.data.user.level++; this.data.user.xp -= needed; needed = this.data.user.level * 100; this.notify(`🎉 LEVEL UP! Lv ${this.data.user.level}!`); }
+        },
+        addSkillXP(key, amount) {
+            const s = this.data.skills[key]; if (!s) return;
+            s.xp += amount; while (s.xp >= s.level * 100) { s.level++; this.notify(`🌟 ${s.name} Lv ${s.level}!`); }
+        },
+
+        checkStreaks() {
+            const today = this.todayKey; if (this.data.user.lastStreakUpdate === today) return;
+            const yesterday = new Date(Date.now() - 86400000).toDateString();
+            const wasFull = this.allTaskIds.every(id => (this.data.tasks[yesterday] || {})[id]?.completed);
+            if (wasFull && this.data.user.lastActive === yesterday) {
+                this.data.user.streak++;
+                if (this.data.user.streak === 7) this.notify('⚡ Week Warrior!');
+                if (this.data.user.streak === 21) { this.addXP(50); this.notify(' 21-Day Legend!'); }
+                if (this.data.user.streak === 30) { this.addXP(100); this.notify('👑 30-Day Master!'); }
+            } else if (this.data.user.lastActive === yesterday && !wasFull) this.data.user.streak = 0;
+            this.data.user.lastActive = today; this.data.user.lastStreakUpdate = today; this.onDataChange();
+        },
+
+        checkBossBattle() {
+            if (this.state.bossShown) return;
+            const today = this.data.tasks[this.todayKey] || {};
+            if (this.allTaskIds.every(id => today[id]?.completed) && Object.keys(today).length > 0) {
+                this.state.bossShown = true;
+                document.getElementById('bossOverlay').classList.add('active');
+                this.addXP(100); this.showConfetti();
+            }
+        },
+        closeBoss() { document.getElementById('bossOverlay').classList.remove('active'); },
+
+        // ========== LAZY MODE & NEXT ACTION ==========
+        toggleLazyMode() {
+            this.state.lazyMode = !this.state.lazyMode;
+            document.body.classList.toggle('lazy-mode', this.state.lazyMode);
+            document.getElementById('lazyText').textContent = this.state.lazyMode ? 'EXIT LAZY' : 'LAZY MODE';
+            if (this.state.lazyMode) { this.updateNextAction(); this.notify('⚡ Lazy Mode: ONE task at a time'); }
+            else this.notify('🔥 Full Mode restored');
+        },
+        exitLazyMode() { this.state.lazyMode = false; document.body.classList.remove('lazy-mode'); document.getElementById('lazyText').textContent = 'LAZY MODE'; },
+
+        updateNextAction() {
+            const today = this.data.tasks[this.todayKey] || {};
+            const next = this.allTasks.find(t => !today[t.id]?.completed);
+            if (next) {
+                this.setText('nextActionIcon', next.skill ? this.data.skills[next.skill].icon : '📌');
+                this.setText('nextActionName', next.name);
+                this.setText('nextActionTime', next.time + ' min');
+                this.setText('nextActionXP', '+' + next.xp + ' XP');
+            } else {
+                this.setText('nextActionIcon', '🏆'); this.setText('nextActionName', 'All Done!');
+                this.setText('nextActionTime', 'Great job!'); this.setText('nextActionXP', ' Boss Defeated!');
+            }
+            const completed = this.allTaskIds.filter(id => today[id]?.completed).length;
+            this.setText('nextActionCount', completed); this.setText('nextActionTotal', this.allTaskIds.length);
+            this.setWidth('nextActionProgress', (completed / this.allTaskIds.length) * 100);
+        },
+        completeNextAction() {
+            const today = this.data.tasks[this.todayKey] || {};
+            const next = this.allTasks.find(t => !today[t.id]?.completed);
+            if (next) { this.toggleTask(next.id); this.updateNextAction(); }
+            else { this.notify('🏆 All complete! Exiting...'); setTimeout(() => this.exitLazyMode(), 1000); }
+        },
+
+        // ========== CV TRACKER ==========
+        addCVItem(type, value) {
+            if (!value.trim()) return;
+            this.data.cv[type].push(value.trim());
+            this.addXP(10); this.notify(` ${type} logged! +10 XP`);
+            this.onDataChange();
+        },
+        addCVXP() { this.addXP(25); this.notify('🏆 CV Progress XP: +25'); this.showConfetti(); },
+
+        // ========== ENERGY & TEMPLATES ==========
+        setEnergy(e) { this.data.user.energy = e; this.data.energyHistory.push({ date: this.todayKey, energy: e }); this.notify({high:"🚀 High energy!",medium:"✅ Steady mode.",low:" Low energy. Easy mode recommended."}[e]); this.onDataChange(); },
+        getEnergyEmoji(e) { return {high:'😀',medium:'😐',low:'😴'}[e]||''; },
+        setTemplate(t) { this.data.user.template = t; document.getElementById('templateBadge').textContent = this.activeTemplate.name.toUpperCase(); this.notify(`📋 Template: ${this.activeTemplate.name}`); this.onDataChange(); },
+        setDifficulty(d) { this.data.user.difficulty = d; document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active')); event.target.classList.add('active'); this.notify(`${d.charAt(0).toUpperCase()+d.slice(1)} Mode`); this.onDataChange(); },
+        setTheme(t) { document.documentElement.setAttribute('data-theme', t); document.querySelectorAll('.theme-btn').forEach(b => b.classList.toggle('active', b.dataset.theme===t)); this.notify(`🎨 ${t} Theme`); },
+
+        // ========== MUSIC ==========
+        playMusic(t) { window.open(this.config.musicPlaylists[t], '_blank'); this.notify(`🎧 Opening ${t}...`); },
+
+        // ========== SHOP ==========
+        purchaseReward(id) {
+            const r = this.config.rewards.find(x => x.id === id);
+            if (!r || this.data.user.xp < r.cost) return;
+            if (confirm(`Spend ${r.cost} XP on "${r.name}"?`)) {
+                this.data.user.xp -= r.cost; this.data.user.purchasedRewards.push(id);
+                this.notify(`🎁 Redeemed: ${r.name}!`); this.onDataChange();
+            }
+        },
+
+        // ========== ACHIEVEMENTS ==========
+        checkAchievements() {
+            const today = this.data.tasks[this.todayKey] || {};
+            const completed = Object.values(today).filter(t => t.completed).length;
+            this.config.achievements.forEach(a => {
+                if (this.data.achievements[a.id]) return;
+                let u = false;
+                if (a.id === 'cv_builder') u = this.data.cv.updates.length + this.data.cv.apps.length + this.data.cv.interviews.length + this.data.cv.portfolio.length >= 10;
+                else if (a.id === 'job_hunter') u = this.data.cv.apps.length >= 5;
+                else if (a.id === 'focus_king') u = this.data.pomodoro.total >= 50;
+                else if (a.id === 'book_worm') u = Object.values(this.data.tasks).reduce((s,d)=>s+(d['read']?.xpEarned?1:0),0)>=100;
+                else if (a.id === 'iron_mind') u = this.data.user.streak >= 30;
+                else if (a.id === 'lang_master') u = Object.values(this.data.tasks).reduce((s,d)=>s+(d['english_speak']?.xpEarned?1:0),0)>=100;
+                else if (a.id === 'prod_beast') u = this.data.user.xp >= 1000;
+                else if (a.id === 'first_blood') u = completed >= 1;
+                else if (a.id === 'streak_3') u = this.data.user.streak >= 3;
+                else if (a.id === 'streak_7') u = this.data.user.streak >= 7;
+                else if (a.id === 'all_tasks') u = this.allTaskIds.every(id => today[id]?.completed);
+                if (u) { this.data.achievements[a.id] = true; this.notify(` Unlocked: ${a.name}!`); this.showConfetti(); }
+            });
+        },
+
+        getRPGInfo() { return [...this.config.rpgTitles].reverse().find(t => this.data.user.level >= t.level) || this.config.rpgTitles[0]; },
+        getNextRPGTitle() { return this.config.rpgTitles.find(t => t.level > this.getRPGInfo().level); },
+
+        showConfetti() {
+            const colors = ['#3b82f6','#10b981','#f59e0b','#a855f7','#ef4444'];
+            for (let i=0; i<50; i++) {
+                const c = document.createElement('div'); c.className='confetti';
+                c.style.left=Math.random()*100+'vw'; c.style.background=colors[Math.floor(Math.random()*colors.length)];
+                c.style.animationDuration=(2+Math.random()*2)+'s'; c.style.animationDelay=Math.random()*0.5+'s';
+                document.body.appendChild(c); setTimeout(()=>c.remove(),4000);
+            }
+        },
+
+        notify(msg) { const n=document.getElementById('notification'); if(!n)return; n.textContent=msg; n.classList.add('show'); setTimeout(()=>n.classList.remove('show'),3000); },
+        setText(id,val) { const el=document.getElementById(id); if(el)el.textContent=val; },
+        setWidth(id,val) { const el=document.getElementById(id); if(el)el.style.width=Math.max(0,Math.min(100,val))+'%'; },
+
+        showSection(id) {
+            document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+            document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+            event.target.classList.add('active');
+            if(id==='analytics') setTimeout(()=>this.initCharts(),100);
+        },
+
+        initCharts() {
+            const w=document.getElementById('weeklyChart'); if(w){
+                if(this.state.charts.weekly) this.state.charts.weekly.destroy();
+                const labels=[], data=[];
+                for(let i=6;i>=0;i--){
+                    const d=new Date(); d.setDate(d.getDate()-i); const k=d.toDateString();
+                    data.push(Math.round(this.allTaskIds.filter(id=>(this.data.tasks[k]||{})[id]?.completed).length/this.allTaskIds.length*100));
+                    labels.push(d.toLocaleDateString('en',{weekday:'short'}));
+                }
+                this.state.charts.weekly=new Chart(w,{type:'line',data:{labels,datasets:[{label:'%',data,borderColor:'#3b82f6',backgroundColor:'rgba(59,130,246,0.2)',fill:true,tension:0.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,max:100,grid:{color:'rgba(255,255,255,0.1)'}},x:{grid:{color:'rgba(255,255,255,0.1)'}}}}});
+            }
+            const s=document.getElementById('skillChart'); if(s){
+                if(this.state.charts.skill) this.state.charts.skill.destroy();
+                this.state.charts.skill=new Chart(s,{type:'doughnut',data:{labels:Object.values(this.data.skills).map(x=>x.name),datasets:[{data:Object.values(this.data.skills).map(x=>x.xp),backgroundColor:['#3b82f6','#10b981','#f59e0b','#a855f7']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'#94a3b8'}}}}});
+            }
+        },
+
+        exportCSV() {
+            let c='Date,Task,Completed,XP\n';
+            for(let [d,t] of Object.entries(this.data.tasks)) for(let tsk of this.allTasks) c+=`${d},${tsk.name},${t[tsk.id]?.completed?'Yes':'No'},${t[tsk.id]?.completed?tsk.xp:0}\n`;
+            this.downloadFile(c,'shura_os.csv','text/csv'); this.notify('📊 CSV exported');
+        },
+        backupJSON() { this.downloadFile(JSON.stringify(this.data,null,2),'shura_backup.json','application/json'); this.notify('💾 Backup saved'); },
+        downloadFile(c,f,t) { const b=new Blob([c],{type:t}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=f; a.click(); URL.revokeObjectURL(u); },
+        resetAll() { if(confirm('⚠️ Reset ALL?')) { localStorage.removeItem('shura_os_v4'); location.reload(); } },
+
+        init() {
+            this.load(); this.checkNewDay(); this.render(); this.initStatusBar();
+            setInterval(()=>this.save(),30000);
+            setInterval(()=>this.checkNewDay(),60000);
+            if('serviceWorker' in navigator) navigator.serviceWorker.register('data:text/javascript,'+encodeURIComponent(`self.addEventListener('fetch',e=>e.respondWith(fetch(e.request).catch(()=>caches.match(e.request))));`)).catch(()=>{});
+        }
+    };
+
+    window.App = App;
+    ['toggleTask','toggleLazyMode','exitLazyMode','completeNextAction','setEnergy','setDifficulty','setTemplate','setTheme','playMusic','purchaseReward','addCVItem','addCVXP','showSection','exportCSV','backupJSON','resetAll','closeBoss'].forEach(f => window[f]=(...a)=>App[f](...a));
+    if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>App.init()); else App.init();
+    </script>
+</body>
+</html>
